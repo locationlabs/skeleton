@@ -42,6 +42,11 @@ class DynamicContent(Static):
         ]
 
 
+class DynamicDirName(Static):
+    """Skeleton with a dynamic directory name ({bar})"""
+    src = 'skeletons/dynamic-dir-name'
+
+
 class DynamicFileName(Static):
     """Skeleton with a dynamic file name (bar/${baz}.txt)"""
     src = 'skeletons/dynamic-file-name'
@@ -59,6 +64,12 @@ class StaticWithRequirement(Static):
 
 
 class MissingVariable(DynamicContent):
+    """We forgot to declare the variable "baz"
+    """
+    variables = []
+
+
+class MissingVariableForDirName(DynamicDirName):
     """We forgot to declare the variable "baz"
     """
     variables = []
@@ -232,6 +243,31 @@ class TestSkeleton(TestCase):
                 open(tmp_dir.join('bar/baz.txt')).read().strip(),
                 'foo <replaced> bar'
                 )
+
+    def test_write_dynamic_dir_names(self):
+        """Tests Skeleton.write() with dynamic dir name"""
+        skel = DynamicDirName(bar="replaced-name")
+        with TempDir() as tmp_dir:
+            skel.write(tmp_dir.path)
+            self.assertEqual(
+                open(tmp_dir.join('foo.txt')).read().strip(),
+                'foo'
+                )
+            self.assertEqual(
+                open(tmp_dir.join('replaced-name/baz.txt')).read().strip(),
+                'baz'
+                )
+
+    def test_write_dir_name_fails(self):
+        """Tests Skeleton.write() with dynamic directory name fails"""
+        skel = MissingVariableForDirName()
+        with TempDir() as tmp_dir:
+            try:
+                skel.write(tmp_dir.path)
+                self.fail("An exception should be raised")
+            except (FileNameKeyError,), exc:
+                self.assertTrue(exc.file_path.endswith('{bar}'))
+                self.assertEqual(exc.variable_name, 'bar')
 
     def test_write_dynamic_file_names(self):
         """Tests Skeleton.write() with dynamic file name"""

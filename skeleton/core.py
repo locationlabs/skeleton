@@ -283,6 +283,7 @@ class Skeleton(collections.MutableMapping):
 
         for dir_path, dir_names, file_names in os.walk(real_src):
             rel_dir_path = dir_path[real_src_len:].lstrip(r'\/')
+            rel_dir_path = self._format_file_name(rel_dir_path, real_src)
 
             #copy files
             for file_name in file_names:
@@ -300,7 +301,7 @@ class Skeleton(collections.MutableMapping):
                 dst = os.path.join(
                     dst_dir,
                     rel_dir_path,
-                    self.template_formatter(dir_name))
+                    self._format_file_name(dir_name, dir_path))
                 self._mkdir(dst, like=src)
 
     def run(self, dst_dir, run_dry=False):
