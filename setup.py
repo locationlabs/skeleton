@@ -5,6 +5,7 @@ import distribute_setup
 distribute_setup.use_setuptools()
 
 import sys
+import os
 
 from setuptools import setup
 
@@ -22,7 +23,7 @@ def read_file(name):
 
 
 PROJECT = 'skeleton'
-VERSION = '0.6-ypr'
+VERSION = '0.6-ll'
 URL = 'http://dinoboff.github.com/skeleton'
 AUTHOR = 'Damien Lebrun'
 AUTHOR_EMAIL = 'dinoboff@gmail.com'
@@ -36,7 +37,7 @@ if sys.version_info > (3,):
 
 setup(
     name=PROJECT,
-    version=VERSION,
+    version=VERSION + os.environ.get('BUILD_SUFFIX',''),
     description=DESC,
     long_description=LONG_DESC,
     author=AUTHOR,
