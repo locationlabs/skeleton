@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 import weakref
+import re
 
 from skeleton.utils import (
     get_loggger, get_file_mode, vars_to_optparser, prompt)
@@ -437,6 +438,48 @@ class Skeleton(collections.MutableMapping):
         if not self.run_dry:
             shutil.copymode(like, path)
 
+class Validator(object):
+    """Define a variable validator.
+
+    """
+
+    def validate(self, var, response):
+        """Checks the user has given a non empty value or that the variable has
+        a default.
+
+        Returns the valide value or the default.
+
+        Raises a ValidateError if the response is invalid.
+        """
+        if self.is_valid(var, response):
+            return response
+        elif var.default is not None:
+            return var.default
+        else:
+            raise ValidateError("%s is required" % var.display_name)
+
+    def is_valid(self, var, response):
+        """Is the user response non-empty?
+        """
+        return response
+
+class RegexValidator(Validator):
+    """Validate based on a regular expression.
+    
+    """
+
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self.regex = re.compile(pattern)
+
+    def is_valid(self, var, response):
+        if not response:
+            return False
+
+        if not self.regex.match(response):
+            raise ValidateError("%s does not match required pattern: %r" % (var.display_name,
+                                                                            self.pattern))
+        return True
 
 class Var(object):
     """Define a template variable.
@@ -447,11 +490,12 @@ class Var(object):
     """
     _prompt = staticmethod(prompt)
 
-    def __init__(self, name, description=None, default=None, intro=None):
+    def __init__(self, name, description=None, default=None, intro=None, validator=None):
         self.name = name
         self.description = description
         self._default = default
         self.intro = intro
+        self.validator = validator or Validator()
         self.owner = None
 
     def __repr__(self):
@@ -516,19 +560,10 @@ class Var(object):
 
 
     def validate(self, response):
-        """Checks the user has given a non empty value or that the variable has
-        a default.
+        """Delegate to Validator.
 
-        Returns the valide value or the default.
-
-        Raises a ValidateError if the response is invalid.
         """
-        if response:
-            return response
-        elif self.default is not None:
-            return self.default
-        else:
-            raise ValidateError("%s is required" % self.display_name)
+        self.validator.validate(self, response)
 
 
 class Bool(Var):
@@ -584,8 +619,8 @@ class DependentVar(Var):
 
     """
     
-    def __init__(self, name, description=None, intro=None, default=None, depends_on=None):
-        super(DependentVar,self).__init__(name, description, default, intro)
+    def __init__(self, name, description=None, intro=None, default=None, validator=None, depends_on=None):
+        super(DependentVar,self).__init__(name, description, default, intro, validator)
         self.depends_on = depends_on
 
     @property
