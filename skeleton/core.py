@@ -439,47 +439,63 @@ class Skeleton(collections.MutableMapping):
             shutil.copymode(like, path)
 
 class Validator(object):
-    """Define a variable validator.
+    """Checks that the user has given a non-empty value or that the variable has
+    a default.
 
+    Returns the valid value or the default.
+    
+    Raises a ValidateError if the response is invalid.
     """
 
     def validate(self, var, response):
-        """Checks the user has given a non empty value or that the variable has
-        a default.
+        """Return a default if appropriate; otherwise check response for validity.
 
-        Returns the valide value or the default.
-
-        Raises a ValidateError if the response is invalid.
+        Subclasses should only need to override do_validate().
         """
-        if self.is_valid(var, response):
-            return response
-        elif var.default is not None:
+
+        if not response and var.default is not None:
             return var.default
-        else:
-            raise ValidateError("%s is required" % var.display_name)
 
-    def is_valid(self, var, response):
-        """Is the user response non-empty?
+        return self.do_validate(var, response)
+
+    def do_validate(self, var, response):
+        """Check that input is not empty.
+
+        Raise ValidateError if it is.
         """
+        if not response:
+            raise ValidateError("%s is required" % var.display_name)
         return response
 
 class RegexValidator(Validator):
-    """Validate based on a regular expression.
+    """Checks either that the user has given a non-empty value matching a regular 
+    expression that the use has given an empty value and the varlible has a default.
     
+    Returns the valid value or the default.
+
+    Raises a ValidateError if the response is invalid.
     """
 
     def __init__(self, pattern):
+        """
+        Initialize regular expression using a (string) pattern.
+
+        """
         self.pattern = pattern
         self.regex = re.compile(pattern)
 
-    def is_valid(self, var, response):
-        if not response:
-            return False
+    def do_validate(self, var, response):
+        """Check for non-empty, matching input
+
+        Raise ValidateError if the input is non-empty and a non-match.
+        """
+        response = super(RegexValidator,self).do_validate(var, response)
 
         if not self.regex.match(response):
             raise ValidateError("%s does not match required pattern: %r" % (var.display_name,
                                                                             self.pattern))
-        return True
+        return response
+
 
 class Var(object):
     """Define a template variable.
