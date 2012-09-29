@@ -238,10 +238,12 @@ class Skeleton(collections.MutableMapping):
         (even the ones with a default value).
         """
         for var in self.variables:
+            var.owner = self
             if var.name not in self.set_variables:
                 self[var.name] = var.do_prompt()
             else:
                 _LOG.debug("Variable %r already set", var.name)
+            var.owner = None
 
     @run_requirements_first
     def write(self, dst_dir, run_dry=False):
@@ -448,18 +450,26 @@ class Var(object):
     def __init__(self, name, description=None, default=None, intro=None):
         self.name = name
         self.description = description
-        self.default = default
+        self._default = default
         self.intro = intro
+        self.owner = None
 
     def __repr__(self):
         return u'<%s %s default=%r>' % (
             self.__class__.__name__, self.name, self.default,)
 
     @property
+    def default(self):
+        """Return the default value, allowing for customization.
+
+        """
+        return self._default
+    
+    @property
     def display_name(self):
         """Return a titled version of name were "_" are replace by spaces.
 
-        Allows to get nice looking name at prompt while following pip8 guidance
+        Allows to get nice looking name at prompt while following pep8 guidance
         (a Var name can be use as argument of skeleton to set the variable).
         """
         return self.name.replace('_', ' ').title()
@@ -568,3 +578,22 @@ class Bool(Var):
                 raise ValidateError("%s is required" % self.display_name)
         else:
             raise ValidateError('enter either "Y" for yes or "N" or no')
+
+class DependentVar(Var):
+    """Var whose default depends on the value of another Var."
+
+    """
+    
+    def __init__(self, name, description=None, intro=None, default=None, depends_on=None):
+        super(DependentVar,self).__init__(name, description, default, intro)
+        self.depends_on = depends_on
+
+    @property
+    def default(self):
+        """If available, use the provided value of another Var as the default.
+
+        """
+        if self.owner and self.depends_on:
+            return str(self.owner[self.depends_on])
+        return self._default
+

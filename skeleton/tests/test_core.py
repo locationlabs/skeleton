@@ -7,7 +7,7 @@ import unittest
 
 from skeleton.tests.utils import TestCase, TempDir
 from skeleton.core import Skeleton, Var, TemplateKeyError, FileNameKeyError, \
-    Bool
+    Bool, DependentVar
 
 
 THIS_YEAR = datetime.datetime.utcnow().year
@@ -484,6 +484,23 @@ class TestDefaultTemplate(unittest.TestCase):
             skel.template_formatter("""{foo} {bar} {baz}"""),
             """1 2 3""")
 
+class TestDependentVar(TestCase):
+    """Tests for skeleton.core.DependentVar"""
+
+    def test_use_previous_default(self):
+        """Tests defaulting to previously specified value"""
+
+        var = DependentVar('foo', depends_on='bar')
+        var.owner = {'bar':'baz'}
+        self.assertEqual(var.default, 'baz')
+
+    def test_use_default(self):
+        """Tests normal defaulting"""
+
+        var = DependentVar('foo', default='bar')
+        var.owner = {'bar':'baz'}
+        self.assertEqual(var.default, 'bar')
+
 
 def suite():
     """Get all licence releated test"""
@@ -491,6 +508,7 @@ def suite():
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSkeleton))
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVar))
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBool))
+    tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestDependentVar))
     tests.addTest(
         unittest.TestLoader().loadTestsFromTestCase(TestDefaultTemplate))
     return tests

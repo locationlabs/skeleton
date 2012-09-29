@@ -5,6 +5,6 @@ similar to the template part of PasteScript but without any dependencies.
 """
 
 from skeleton.core import (
-    Skeleton, Var, Bool, FileNameKeyError, TemplateKeyError
+    Skeleton, Var, Bool, DependentVar, FileNameKeyError, TemplateKeyError
     )
 from skeleton.utils import insert_into_file
