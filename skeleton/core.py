@@ -579,7 +579,7 @@ class Var(object):
         """Delegate to Validator.
 
         """
-        self.validator.validate(self, response)
+        return self.validator.validate(self, response)
 
 
 class Bool(Var):
