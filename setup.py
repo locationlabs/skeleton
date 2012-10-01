@@ -48,7 +48,9 @@ setup(
     test_suite='skeleton.tests',
     include_package_data=True,
     zip_safe=False,
-    install_requires=[],
+    install_requires=[
+        'jinja2'
+        ],
     extras_require={
         'virtualenv-templates':  [
             'virtualenvwrapper>=2.1.1',

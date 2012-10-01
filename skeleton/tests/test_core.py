@@ -80,6 +80,15 @@ class MissingVariableForFileName(DynamicFileName):
     """
     variables = []
 
+class Jinja(Static):
+    """Skeleton dynamic content using jinja syntax"""
+
+    src = 'skeletons/jinja'
+    use_jinja = True
+    variables = [
+        Var('foo'),
+        Var('bar'),
+        ]
 
 class TestSkeleton(TestCase):
     """Tests new implementation of Skeleton"""
@@ -332,6 +341,21 @@ class TestSkeleton(TestCase):
             with open(tmp_dir.join('foo.txt')) as foo_file:
                 self.assertEqual(foo_file.read().strip(), 'foo')
 
+    def test_jinja(self):
+        """Tests Skeleton.write() with dynamic content using jinja."""
+
+        skel = Jinja(foo='foo',
+                     bar='bar')
+        with TempDir() as tmp_dir:
+            skel.write(tmp_dir.path)
+            self.assertEqual(
+                open(tmp_dir.join('foo.txt')).read().strip(),
+                'foo'
+                )
+            self.assertEqual(
+                open(tmp_dir.join('bar/baz.txt')).read().strip(),
+                'baz'
+                )
 
 class TestVar(TestCase):
     """Tests for skeleton.Var"""
@@ -509,8 +533,7 @@ def suite():
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestVar))
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBool))
     tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestDependentVar))
-    tests.addTest(
-        unittest.TestLoader().loadTestsFromTestCase(TestDefaultTemplate))
+    tests.addTest(unittest.TestLoader().loadTestsFromTestCase(TestDefaultTemplate))
     return tests
 
 if __name__ == "__main__":

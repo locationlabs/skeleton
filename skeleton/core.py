@@ -13,6 +13,8 @@ import sys
 import weakref
 import re
 
+from jinja2 import Template
+
 from skeleton.utils import (
     get_loggger, get_file_mode, vars_to_optparser, prompt)
 
@@ -101,6 +103,36 @@ def run_requirements_first(skel_method):
     functools.update_wrapper(wrapper, skel_method)
     return wrapper
 
+class StringFormatter(object):
+    """Format a string template using a skeleton's variables and string.format().
+
+    """
+
+    def __init__(self, skeleton):
+        self.skeleton = skeleton
+
+    def format(self, template):
+        """Return a formatted version of the string `template`.
+
+        Raises a KeyError if a variable is missing.
+        """
+        return template.format(**self.skeleton)
+
+class JinjaFormatter(object):
+    """Format a string template using a skeleton's variables and Jinja2.
+
+    """
+
+    def __init__(self, skeleton):
+        self.skeleton = skeleton
+
+    def format(self, template):
+        """Return a formatted version of the string `template`.
+
+        Raises a KeyError if a variable is missing.
+        """
+        return Template(template).render(**self.skeleton)
+
 
 class Skeleton(collections.MutableMapping):
     """Skeleton Class.
@@ -138,6 +170,7 @@ class Skeleton(collections.MutableMapping):
 
     template_suffix = '_tmpl'
     run_dry = False
+    use_jinja = False
 
     def __init__(self, skeleton=None, **kw):
         self._required_skeletons_instances = None
@@ -154,6 +187,11 @@ class Skeleton(collections.MutableMapping):
         for var in self.variables:
             if var.default is not None:
                 self._defaults[var.name] = var.default
+
+        if self.use_jinja:
+            self.formatter = JinjaFormatter(self)
+        else:
+            self.formatter = StringFormatter(self)
 
     @property
     def required_skeletons_instances(self):
@@ -365,7 +403,7 @@ class Skeleton(collections.MutableMapping):
 
         Raises a KeyError if a variable is missing.
         """
-        return template.format(**self)
+        return self.formatter.format(template)
 
     def _format_file_name(self, file_name, dir_path):
         try:
