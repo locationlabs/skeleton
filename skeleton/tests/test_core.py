@@ -349,11 +349,11 @@ class TestSkeleton(TestCase):
         with TempDir() as tmp_dir:
             skel.write(tmp_dir.path)
             self.assertEqual(
-                open(tmp_dir.join('foo.txt')).read().strip(),
-                'foo'
+                open(tmp_dir.join('foo.txt')).read(),
+                'foo\n'
                 )
             self.assertEqual(
-                open(tmp_dir.join('bar/baz.txt')).read().strip(),
+                open(tmp_dir.join('bar/baz.txt')).read(),
                 'baz'
                 )
 
