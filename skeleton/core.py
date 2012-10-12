@@ -131,7 +131,10 @@ class JinjaFormatter(object):
 
         Raises a KeyError if a variable is missing.
         """
-        return Template(template).render(**self.skeleton)
+        # preserve final newline, if present
+        # ref. https://groups.google.com/forum/?fromgroups=#!topic/pocoo-libs/6DylMqq1voI
+        newline = "\n" if template.endswith("\n") else ""
+        return Template(template + newline).render(**self.skeleton)
 
 
 class Skeleton(collections.MutableMapping):
