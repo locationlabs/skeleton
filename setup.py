@@ -23,7 +23,7 @@ def read_file(name):
 
 
 PROJECT = 'skeleton'
-VERSION = '0.6-ll'
+VERSION = '0.6-ll' + os.environ.get('BUILD_SUFFIX','')
 URL = 'http://dinoboff.github.com/skeleton'
 AUTHOR = 'Damien Lebrun'
 AUTHOR_EMAIL = 'dinoboff@gmail.com'
