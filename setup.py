@@ -5,7 +5,6 @@ import distribute_setup
 distribute_setup.use_setuptools()
 
 import sys
-import os
 
 from setuptools import setup
 
@@ -24,6 +23,8 @@ def read_file(name):
 
 PROJECT = 'skeleton'
 VERSION = '0.6-ll'
+# Jenkins will replace __build__ with a unique value.
+__build__ = ''
 URL = 'http://dinoboff.github.com/skeleton'
 AUTHOR = 'Damien Lebrun'
 AUTHOR_EMAIL = 'dinoboff@gmail.com'
@@ -37,7 +38,7 @@ if sys.version_info > (3,):
 
 setup(
     name=PROJECT,
-    version=VERSION + os.environ.get('BUILD_SUFFIX',''),
+    version=VERSION + __build__,
     description=DESC,
     long_description=LONG_DESC,
     author=AUTHOR,
@@ -50,18 +51,18 @@ setup(
     zip_safe=False,
     install_requires=[
         'jinja2'
-        ],
+    ],
     extras_require={
         'virtualenv-templates':  [
             'virtualenvwrapper>=2.1.1',
             'virtualenvwrapper.project>=1.0'
-            ],
+        ],
     },
     entry_points={
         'virtualenvwrapper.project.template': [
             'package = skeleton.examples.basicpackage:virtualenv_warpper_hook',
-            ],
-        },
+        ],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -71,6 +72,6 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.1',
-        ],
+    ],
     **EXTRAS
 )
