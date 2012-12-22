@@ -22,7 +22,7 @@ def read_file(name):
 
 
 PROJECT = 'skeleton'
-VERSION = '0.6-ll'
+VERSION = '0.6.1-ll'
 # Jenkins will replace __build__ with a unique value.
 __build__ = ''
 URL = 'http://dinoboff.github.com/skeleton'
