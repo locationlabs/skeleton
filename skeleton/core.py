@@ -62,8 +62,8 @@ class FileNameKeyError(KeyError, SkeletonError):
         self.file_path = file_path
 
     def __str__(self):
-        return ("Found unexpected variable %r in file name %r"
-            % (self.variable_name, self.file_path))
+        return ("Found unexpected variable {var} in file name {file}".format(var=self.variable_name,
+                                                                             file=self.file_path))
 
 
 class ValidateError(SkeletonError):
@@ -103,6 +103,7 @@ def run_requirements_first(skel_method):
     functools.update_wrapper(wrapper, skel_method)
     return wrapper
 
+
 class StringFormatter(object):
     """Format a string template using a skeleton's variables and string.format().
 
@@ -117,6 +118,7 @@ class StringFormatter(object):
         Raises a KeyError if a variable is missing.
         """
         return template.format(**self.skeleton)
+
 
 class JinjaFormatter(object):
     """Format a string template using a skeleton's variables and Jinja2.
@@ -214,10 +216,7 @@ class Skeleton(collections.MutableMapping):
         Absolute Path to skeleton directory (read-only).
         """
         if self.src is None:
-            raise AttributeError(
-                "The src attribute of the %s Skeleton is not set" %
-                self.__class__.__name__
-                )
+            raise AttributeError("The src attribute of the {} Skeleton is not set".format(self.__class__.__name__))
 
         mod = sys.modules[self.__class__.__module__]
         mod_dir = os.path.dirname(mod.__file__)
@@ -376,8 +375,7 @@ class Skeleton(collections.MutableMapping):
 
         logging.basicConfig(
             level=options.verbose_,
-            format="%(levelname)s - %(message)s"
-            )
+            format="%(levelname)s - %(message)s")
 
         for var in skel.variables:
             value = getattr(options, var.name)
@@ -391,11 +389,11 @@ class Skeleton(collections.MutableMapping):
         """
         parser = optparse.OptionParser(usage="%prog [options] dst_dir")
         parser.add_option("-q", "--quiet",
-            action="store_const", const=logging.FATAL, dest="verbose_")
+                          action="store_const", const=logging.FATAL, dest="verbose_")
         parser.add_option("-v", "--verbose",
-            action="store_const", const=logging.INFO, dest="verbose_")
+                          action="store_const", const=logging.INFO, dest="verbose_")
         parser.add_option("-d", "--debug",
-            action="store_const", const=logging.DEBUG, dest="verbose_")
+                          action="store_const", const=logging.DEBUG, dest="verbose_")
         parser.set_default('verbose_', logging.ERROR)
 
         parser = vars_to_optparser(self.variables, parser=parser)
@@ -414,8 +412,7 @@ class Skeleton(collections.MutableMapping):
         except (KeyError,), exc:
             raise FileNameKeyError(
                 exc.args[0],
-                os.path.join(dir_path, file_name)
-                )
+                os.path.join(dir_path, file_name))
 
     def _mkdir(self, path, like=None):
         """Create a directory (using os.mkdir)
@@ -479,12 +476,13 @@ class Skeleton(collections.MutableMapping):
         if not self.run_dry:
             shutil.copymode(like, path)
 
+
 class Validator(object):
     """Checks that the user has given a non-empty value or that the variable has
     a default.
 
     Returns the valid value or the default.
-    
+
     Raises a ValidateError if the response is invalid.
     """
 
@@ -508,10 +506,11 @@ class Validator(object):
             raise ValidateError("%s is required" % var.display_name)
         return response
 
+
 class RegexValidator(Validator):
-    """Checks either that the user has given a non-empty value matching a regular 
+    """Checks either that the user has given a non-empty value matching a regular
     expression that the use has given an empty value and the varlible has a default.
-    
+
     Returns the valid value or the default.
 
     Raises a ValidateError if the response is invalid.
@@ -530,7 +529,7 @@ class RegexValidator(Validator):
 
         Raise ValidateError if the input is non-empty and a non-match.
         """
-        response = super(RegexValidator,self).do_validate(var, response)
+        response = super(RegexValidator, self).do_validate(var, response)
 
         if not self.regex.match(response):
             raise ValidateError("%s does not match required pattern: %r" % (var.display_name,
@@ -565,7 +564,7 @@ class Var(object):
 
         """
         return self._default
-    
+
     @property
     def display_name(self):
         """Return a titled version of name were "_" are replace by spaces.
@@ -598,7 +597,7 @@ class Var(object):
         """Prompt user for variable value and return the validated value
 
         It will keep prompting the user until it receive a valid value.
-        By default, a value is valid if it is not a empty string string or if 
+        By default, a value is valid if it is not a empty string string or if
         the variable has a default.
 
         If the user value is empty and the variable has a default, the default
@@ -614,7 +613,6 @@ class Var(object):
                 return self.validate(self._prompt(prompt_))
             except (ValidateError,), exc:
                 print str(exc)
-
 
     def validate(self, response):
         """Delegate to Validator.
@@ -654,7 +652,7 @@ class Bool(Var):
         """Checks the response is either Y, YES, N or NO, or that the variable
         has a default value.
 
-        Raises a ValidateError exception if the response wasn't recognized or 
+        Raises a ValidateError exception if the response wasn't recognized or
         if no value was given and one is required.
 
         """
@@ -671,13 +669,13 @@ class Bool(Var):
         else:
             raise ValidateError('enter either "Y" for yes or "N" or no')
 
+
 class DependentVar(Var):
     """Var whose default depends on the value of another Var."
 
     """
-    
     def __init__(self, name, description=None, intro=None, default=None, validator=None, depends_on=None):
-        super(DependentVar,self).__init__(name, description, default, intro, validator)
+        super(DependentVar, self).__init__(name, description, default, intro, validator)
         self.depends_on = depends_on
 
     @property
@@ -688,4 +686,3 @@ class DependentVar(Var):
         if self.owner and self.depends_on:
             return str(self.owner[self.depends_on])
         return self._default
-
