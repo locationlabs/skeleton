@@ -43,7 +43,7 @@ class TemplateKeyError(KeyError, SkeletonError):
 
     def __str__(self):
         return ("Found unexpected variable %r in %r."
-            % (self.variable_name, self.file_path,))
+                % (self.variable_name, self.file_path,))
 
 
 class FileNameKeyError(KeyError, SkeletonError):
@@ -335,7 +335,7 @@ class Skeleton(collections.MutableMapping):
                     dst_dir,
                     rel_dir_path,
                     self._format_file_name(file_name, dir_path)
-                    )
+                )
                 self._copy_file(src, dst)
 
             #copy directories
@@ -534,6 +534,28 @@ class RegexValidator(Validator):
         if not self.regex.match(response):
             raise ValidateError("%s does not match required pattern: %r" % (var.display_name,
                                                                             self.pattern))
+        return response
+
+
+class ChoiceValidator(Validator):
+    """
+    Checks that the input matches a choice.
+    """
+
+    def __init__(self, choices):
+        self.choices = choices
+
+    def do_validate(self, var, response):
+        """
+        Check for matching input.
+
+        Raise ValidateError if the input is non-empty and a non-match.
+        """
+        response = super(ChoiceValidator, self).do_validate(var, response)
+
+        if response not in self.choices:
+            raise ValidateError("{var} must be one of: {choices}".format(var=var.display_name,
+                                                                         choices=", ".join(self.choices)))
         return response
 
 
