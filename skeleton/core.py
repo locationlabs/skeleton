@@ -462,8 +462,9 @@ class Skeleton(collections.MutableMapping):
             fd_dst = None
             try:
                 fd_src = codecs.open(src, encoding=self.file_encoding)
+                rendered_contents = self.template_formatter(fd_src.read())
                 fd_dst = codecs.open(dst, 'w', encoding=self.file_encoding)
-                fd_dst.write(self.template_formatter(fd_src.read()))
+                fd_dst.write(rendered_contents)
             finally:
                 if fd_src is not None:
                     fd_src.close()
