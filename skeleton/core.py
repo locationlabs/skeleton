@@ -13,7 +13,8 @@ import sys
 import weakref
 import re
 
-from jinja2 import Template
+from jinja2 import FileSystemLoader
+from jinja2.environment import Environment
 
 from skeleton.utils import (
     get_loggger, get_file_mode, vars_to_optparser, prompt)
@@ -136,7 +137,9 @@ class JinjaFormatter(object):
         # preserve final newline, if present
         # ref. https://groups.google.com/forum/?fromgroups=#!topic/pocoo-libs/6DylMqq1voI
         newline = "\n" if template.endswith("\n") else ""
-        return Template(template + newline).render(**self.skeleton)
+        env = Environment()
+        env.loader = FileSystemLoader('.')
+        return env.from_string(template + newline).render(**self.skeleton)
 
 
 class Skeleton(collections.MutableMapping):
