@@ -385,6 +385,8 @@ class Skeleton(collections.MutableMapping):
             if value is not None:
                 skel[var.name] = value
 
+        skel['__dst_dir__'] = args[0]
+
         skel.run(args[0])
 
     def configure_parser(self):
