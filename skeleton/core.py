@@ -13,7 +13,8 @@ import sys
 import weakref
 import re
 
-from jinja2 import Template
+from jinja2 import FileSystemLoader
+from jinja2.environment import Environment
 
 from skeleton.utils import (
     get_loggger, get_file_mode, vars_to_optparser, prompt)
@@ -136,7 +137,9 @@ class JinjaFormatter(object):
         # preserve final newline, if present
         # ref. https://groups.google.com/forum/?fromgroups=#!topic/pocoo-libs/6DylMqq1voI
         newline = "\n" if template.endswith("\n") else ""
-        return Template(template + newline).render(**self.skeleton)
+        env = Environment()
+        env.loader = FileSystemLoader(self.skeleton['__dst_dir__'])
+        return env.from_string(template + newline).render(**self.skeleton)
 
 
 class Skeleton(collections.MutableMapping):
@@ -324,6 +327,8 @@ class Skeleton(collections.MutableMapping):
         real_src_len = len(real_src)
         _LOG.debug("Getting skeleton from %r" % real_src)
 
+        self['__dst_dir__'] = dst_dir
+
         for dir_path, dir_names, file_names in os.walk(real_src):
             rel_dir_path = dir_path[real_src_len:].lstrip(r'\/')
             rel_dir_path = self._format_file_name(rel_dir_path, real_src)
@@ -459,8 +464,9 @@ class Skeleton(collections.MutableMapping):
             fd_dst = None
             try:
                 fd_src = codecs.open(src, encoding=self.file_encoding)
+                rendered_contents = self.template_formatter(fd_src.read())
                 fd_dst = codecs.open(dst, 'w', encoding=self.file_encoding)
-                fd_dst.write(self.template_formatter(fd_src.read()))
+                fd_dst.write(rendered_contents)
             finally:
                 if fd_src is not None:
                     fd_src.close()
