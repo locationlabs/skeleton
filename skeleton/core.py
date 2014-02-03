@@ -327,6 +327,8 @@ class Skeleton(collections.MutableMapping):
         real_src_len = len(real_src)
         _LOG.debug("Getting skeleton from %r" % real_src)
 
+        self['__dst_dir__'] = dst_dir
+
         for dir_path, dir_names, file_names in os.walk(real_src):
             rel_dir_path = dir_path[real_src_len:].lstrip(r'\/')
             rel_dir_path = self._format_file_name(rel_dir_path, real_src)
@@ -384,8 +386,6 @@ class Skeleton(collections.MutableMapping):
             value = getattr(options, var.name)
             if value is not None:
                 skel[var.name] = value
-
-        skel['__dst_dir__'] = args[0]
 
         skel.run(args[0])
 
