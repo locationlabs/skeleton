@@ -138,7 +138,7 @@ class JinjaFormatter(object):
         # ref. https://groups.google.com/forum/?fromgroups=#!topic/pocoo-libs/6DylMqq1voI
         newline = "\n" if template.endswith("\n") else ""
         env = Environment()
-        env.loader = FileSystemLoader('.')
+        env.loader = FileSystemLoader(self.skeleton['__dst_dir__'])
         return env.from_string(template + newline).render(**self.skeleton)
 
 
